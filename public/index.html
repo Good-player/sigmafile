@@ -3,45 +3,52 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>File Upload</title>
+  <title>File Upload & Account System</title>
   <style>
-    /* CSS for modern styling */
+    /* Simple and modern style */
     body {
       font-family: 'Arial', sans-serif;
-      background-color: #f4f4f4;
       margin: 0;
       padding: 0;
       display: flex;
       justify-content: center;
       align-items: center;
+      background-color: #f5f5f5;
       height: 100vh;
     }
 
     .container {
-      text-align: center;
-      background-color: white;
-      border-radius: 10px;
-      padding: 30px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       width: 100%;
-      max-width: 400px;
+      max-width: 500px;
+      text-align: center;
     }
 
     h1 {
-      font-size: 2rem;
-      margin-bottom: 20px;
       color: #333;
+      font-size: 1.8rem;
+    }
+
+    .form-group {
+      margin: 20px 0;
+    }
+
+    input, button {
+      padding: 10px;
+      width: 100%;
+      margin-top: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
     }
 
     button {
       background-color: #007bff;
       color: white;
-      padding: 15px 30px;
       border: none;
-      border-radius: 5px;
       cursor: pointer;
-      font-size: 1rem;
-      transition: background-color 0.3s ease;
     }
 
     button:hover {
@@ -51,22 +58,144 @@
     button:active {
       background-color: #003f75;
     }
+
+    .message {
+      color: #f44336;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
 
   <div class="container">
-    <h1>Welcome to the File Upload Service</h1>
-    <button id="redirectButton" onclick="redirectToHub()">Go to Pro Hub</button>
+    <h1>Account System & File Upload</h1>
+
+    <div id="loginForm">
+      <h2>Login</h2>
+      <div class="form-group">
+        <input type="text" id="loginUsername" placeholder="Username" required>
+      </div>
+      <div class="form-group">
+        <input type="password" id="loginPassword" placeholder="Password" required>
+      </div>
+      <button onclick="login()">Login</button>
+      <p id="loginMessage" class="message"></p>
+      <button onclick="showRegisterForm()">Register</button>
+    </div>
+
+    <div id="registerForm" style="display: none;">
+      <h2>Register</h2>
+      <div class="form-group">
+        <input type="text" id="registerUsername" placeholder="Username" required>
+      </div>
+      <div class="form-group">
+        <input type="password" id="registerPassword" placeholder="Password" required>
+      </div>
+      <button onclick="register()">Register</button>
+      <p id="registerMessage" class="message"></p>
+      <button onclick="showLoginForm()">Back to Login</button>
+    </div>
+
+    <div id="fileUploadSection" style="display: none;">
+      <h2>Upload Your File</h2>
+      <input type="file" id="fileInput">
+      <button onclick="uploadFile()">Upload File</button>
+      <p id="uploadMessage" class="message"></p>
+      <button onclick="logout()">Logout</button>
+    </div>
   </div>
 
   <script>
-    // JavaScript function for redirection
-    function redirectToHub() {
-      window.location.href = "https://good-player.github.io/sigmaweb-pro/prohub.html";
+    let currentUser = null;
+    let fileUploads = 0;
+
+    // Dummy database for storing users and files
+    let usersDatabase = [];
+    let filesDatabase = [];
+
+    // Show login form
+    function showLoginForm() {
+      document.getElementById("registerForm").style.display = "none";
+      document.getElementById("loginForm").style.display = "block";
+    }
+
+    // Show register form
+    function showRegisterForm() {
+      document.getElementById("loginForm").style.display = "none";
+      document.getElementById("registerForm").style.display = "block";
+    }
+
+    // Handle login
+    function login() {
+      const username = document.getElementById("loginUsername").value;
+      const password = document.getElementById("loginPassword").value;
+      const user = usersDatabase.find(u => u.username === username && u.password === password);
+      
+      if (user) {
+        currentUser = user;
+        document.getElementById("loginForm").style.display = "none";
+        document.getElementById("fileUploadSection").style.display = "block";
+        document.getElementById("loginMessage").textContent = "";
+      } else {
+        document.getElementById("loginMessage").textContent = "Invalid login credentials!";
+      }
+    }
+
+    // Handle register
+    function register() {
+      const username = document.getElementById("registerUsername").value;
+      const password = document.getElementById("registerPassword").value;
+
+      if (usersDatabase.find(u => u.username === username)) {
+        document.getElementById("registerMessage").textContent = "Username already taken!";
+        return;
+      }
+
+      const newUser = {
+        username: username,
+        password: password,
+        files: []
+      };
+
+      usersDatabase.push(newUser);
+      document.getElementById("registerMessage").textContent = "Account created successfully!";
+      showLoginForm();
+    }
+
+    // Handle file upload
+    function uploadFile() {
+      const file = document.getElementById("fileInput").files[0];
+      
+      if (!file) {
+        document.getElementById("uploadMessage").textContent = "Please choose a file to upload!";
+        return;
+      }
+
+      if (currentUser.files.length >= 15 || fileUploads >= 3) {
+        document.getElementById("uploadMessage").textContent = "You have reached the file upload limit!";
+        return;
+      }
+
+      currentUser.files.push(file);
+      fileUploads++;
+
+      filesDatabase.push({
+        userId: currentUser.username,
+        fileName: file.name,
+        fileSize: file.size,
+        uploadDate: new Date().toISOString()
+      });
+
+      document.getElementById("uploadMessage").textContent = "File uploaded successfully!";
+    }
+
+    // Handle logout
+    function logout() {
+      currentUser = null;
+      document.getElementById("fileUploadSection").style.display = "none";
+      document.getElementById("loginForm").style.display = "block";
     }
   </script>
 
 </body>
 </html>
-
