@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Notes Website</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #4CAF50;
+      color: white;
+      padding: 15px 20px;
+      text-align: center;
+    }
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px 0;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Notes Website</h1>
+</header>
+
+<div>
+  <button onclick="saveText()">Save Text</button>
+  <button onclick="viewNote()">View Note</button>
+</div>
+
+<script>
+  const workerEndpoint = 'https://YOUR_WORKER_URL'; // Replace with your Worker URL
+
+  // Save a note to Cloudflare KV
+  async function saveText() {
+    const title = prompt('Enter title for your note:');
+    const text = prompt('Enter the note content:');
+    const desc = prompt('Enter a short description:');
+    const type = prompt('Enter type (public/private):');
+    
+    const code = generateCode();
+    
+    // Send the note data to the Cloudflare Worker
+    const response = await fetch(`${workerEndpoint}/save-note`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, text, desc, type, code }),
+    });
+
+    if (response.ok) {
+      alert('Text saved! Your code is: ' + code);
+    } else {
+      alert('Error saving text!');
+    }
+  }
+
+  // Generate a unique code for each note
+  function generateCode() {
+    let code = '';
+    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    for (let i = 0; i < 10; i++) {
+      code += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return code;
+  }
+
+  // View a note using its code
+  async function viewNote() {
+    const code = prompt('Enter the note code:');
+    const response = await fetch(`${workerEndpoint}/get-note/${code}`);
+    
+    if (response.ok) {
+      const note = await response.json();
+      alert('Note: ' + note.text);
+    } else {
+      alert('Note not found.');
+    }
+  }
+</script>
+
+</body>
+</html>
